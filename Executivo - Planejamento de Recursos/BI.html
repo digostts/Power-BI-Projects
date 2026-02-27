@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RS Dashboard Executivo 2026</title>
+    <!-- Tailwind CSS para Estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React e Babel para rodar JSX no navegador -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .bg-slate-900 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="bg-slate-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- ÍCONES (Wrapper para Lucide) ---
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        // --- MOCK DATA ---
+        const mockCompletionData = [
+            { name: 'Operações e Estratégia', value: 100 },
+            { name: 'Laboratório de Inovação', value: 100 },
+            { name: 'Sistemas Industriais', value: 97 },
+            { name: 'Plataformas Tech', value: 95 },
+            { name: 'Arquitetura de Veículos', value: 95 },
+            { name: 'Manufatura Avançada', value: 95 },
+            { name: 'Estratégia Global Tech', value: 92 },
+            { name: 'Engenharia de Software', value: 88 },
+            { name: 'Plataformas Eletrônicas', value: 87 },
+            { name: 'Veículos Conectados', value: 84 },
+            { name: 'Design Corporativo', value: 78 },
+            { name: 'Sistemas de Qualidade', value: 74 },
+            { name: 'Sistemas Autônomos', value: 68 },
+            { name: 'Propulsão Elétrica', value: 66 },
+            { name: 'Design Digital', value: 64 },
+            { name: 'Programas de Desenvolvimento', value: 25 },
+        ];
+
+        const mockMonthlyData = [
+            { month: 'Jul', actual: 11783, workload: 10785 },
+            { month: 'Ago', actual: 11896, workload: 10951 },
+            { month: 'Set', actual: 11907, workload: 11156 },
+            { month: 'Out', actual: 11933, workload: 11235 },
+            { month: 'Nov', actual: 13055, workload: 12252 },
+            { month: 'Dez', actual: 12952, workload: 12041 },
+        ];
+
+        const mockVarianceData = [
+            { name: 'Programa de Lançamento', value: 530 },
+            { name: 'Tecnologia Mobile', value: 308 },
+            { name: 'SUV Luxo', value: 277 },
+            { name: 'Picape Elétrica', value: 222 },
+            { name: 'Custos / TVM', value: 198 },
+            { name: 'Manutenção Lab', value: 170 },
+            { name: 'Van Comercial', value: 130 },
+            { name: 'Qualidade', value: -130 },
+            { name: 'Proj. Delta', value: -217 },
+            { name: 'Proj. Alpha', value: -371 },
+        ];
+
+        const kpiData = {
+            realizadoForca: 12591,
+            esforcoExtra: 361,
+            realizadoEquivalente: 12591 + 361, 
+            cargaPlanejada: 12041,
+            get variacao() { return this.realizadoEquivalente - this.cargaPlanejada }, 
+            get porcentagem() { return (this.realizadoEquivalente / this.cargaPlanejada * 100).toFixed(0) } 
+        };
+
+        const BrandLogo = ({ size = "md", theme = "dark" }) => {
+            const sizes = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-xl" };
+            return (
+                <div className={`${sizes[size]} ${theme === 'dark' ? 'bg-blue-600' : 'bg-[#0b195c]'} rounded-lg flex items-center justify-center font-bold text-white italic shadow-lg shrink-0`}>
+                    RS
+                </div>
+            );
+        };
+
+        const HomePage = ({ setPage }) => (
+            <div className="h-full w-full bg-slate-900 text-white flex flex-col p-6 overflow-hidden">
+                <div className="flex justify-between items-center border-b border-slate-700 pb-4 mb-6 shrink-0">
+                    <div className="flex items-center gap-4">
+                        <BrandLogo size="lg" />
+                        <div>
+                            <div className="text-xs text-slate-400">Desenvolvido por Rodrigo Santos</div>
+                            <div className="text-sm font-semibold bg-blue-600 px-2 py-0.5 rounded text-white inline-block">Planejamento de Recursos</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                        <div className="flex items-center gap-2 text-slate-300"><Icon name="user" size={16} /> Analista: Rodrigo Santos</div>
+                        <div className="flex items-center gap-2 text-slate-300"><Icon name="database" size={16} /> Ciclo: 2026</div>
+                    </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto w-full flex-1 min-h-0 flex flex-col justify-center">
+                    <div className="mb-8 shrink-0">
+                        <h1 className="text-4xl font-bold mb-3">Controle de Planejamento 2026</h1>
+                        <p className="text-slate-400 max-w-2xl text-base">
+                            Visão consolidada de alocação de recursos humanos. Análise comparativa entre força de trabalho real e demanda planejada para o ano fiscal de 2026.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                        <div className="flex flex-col gap-4">
+                            <button onClick={() => setPage('entry')} className="flex-1 text-left bg-gradient-to-r from-slate-800 to-slate-800/50 p-5 rounded-xl border border-slate-700 hover:border-blue-500 transition-all group flex items-start gap-5">
+                                <div className="bg-slate-900 p-3 rounded-full text-blue-400 group-hover:scale-110 transition-transform">
+                                    <Icon name="file-text" size={28} />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <h3 className="text-lg font-bold">Status de Entrada</h3>
+                                        <Icon name="chevron-right" size={20} className="text-slate-500 group-hover:text-blue-400" />
+                                    </div>
+                                    <p className="text-slate-400 text-sm">Verifique o progresso dos lançamentos e conformidade de preenchimento por pilar.</p>
+                                </div>
+                            </button>
+
+                            <button onClick={() => setPage('actuals')} className="flex-1 text-left bg-gradient-to-r from-slate-800 to-slate-800/50 p-5 rounded-xl border border-slate-700 hover:border-blue-500 transition-all group flex items-start gap-5">
+                                <div className="bg-slate-900 p-3 rounded-full text-blue-400 group-hover:scale-110 transition-transform">
+                                    <Icon name="activity" size={28} />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <h3 className="text-lg font-bold">Consolidado 2026</h3>
+                                        <Icon name="chevron-right" size={20} className="text-slate-500 group-hover:text-blue-400" />
+                                    </div>
+                                    <p className="text-slate-400 text-sm">Análise detalhada de Realizado vs Planejado e variações críticas de categoria.</p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <div className="flex-1 bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden flex flex-col">
+                                <div className="bg-slate-800 px-5 py-2 border-b border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ciclo Administrativo</div>
+                                <div className="p-6 flex-1 flex flex-col justify-center gap-6">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <div className="text-xs text-slate-400 mb-1">Ano de Referência</div>
+                                            <div className="text-xl font-bold">Exercício 2026</div>
+                                        </div>
+                                        <div className="text-right text-blue-400">
+                                            <div className="text-xs text-slate-400 mb-1 text-right">Status do Ciclo</div>
+                                            <div className="text-lg font-medium flex items-center gap-2"><Icon name="calendar" size={18} /> Ativo 2026</div>
+                                        </div>
+                                    </div>
+                                    <div className="h-px bg-slate-700/50 w-full"></div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-slate-900/40 p-3 rounded-lg border border-slate-700/50 text-sm">
+                                            <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Responsável</div>
+                                            <div className="font-medium text-slate-200">Rodrigo Santos</div>
+                                        </div>
+                                        <div className="bg-slate-900/40 p-3 rounded-lg border border-slate-700/50 text-sm">
+                                            <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Versão Sistema</div>
+                                            <div className="font-medium text-slate-200">v2.1 Stable</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-blue-600/10 p-3 border-t border-slate-700/50">
+                                    <div className="text-[10px] text-blue-400 font-bold flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                                        SISTEMA OPERACIONAL: AMBIENTE DE PRODUÇÃO
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-slate-800 flex justify-between text-xs text-slate-500">
+                    <p>© 2026 RS Corp - Rodrigo Santos</p>
+                    <p>Dashboard de Planejamento Estratégico</p>
+                </div>
+            </div>
+        );
+
+        const EntryStatusPage = () => (
+            <div className="p-5 bg-slate-50 h-full flex flex-col overflow-hidden">
+                <div className="flex justify-between items-start mb-4 shrink-0">
+                    <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        Status de Entrada 2026 <Icon name="info" size={16} className="text-slate-400" />
+                    </h2>
+                </div>
+
+                <div className="grid grid-cols-4 gap-3 mb-4 shrink-0">
+                    <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 border-l-4 border-l-blue-600">
+                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Conclusão Total</div>
+                        <div className="text-2xl font-bold text-slate-800">85%</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200">
+                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Registros</div>
+                        <div className="text-2xl font-bold text-slate-800">18.595</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200">
+                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Lançados</div>
+                        <div className="text-2xl font-bold text-emerald-600">15.810</div>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200">
+                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Pendentes</div>
+                        <div className="text-2xl font-bold text-rose-600">2.785</div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 flex-1 min-h-0 flex flex-col">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase mb-4">Análise por Função e Pilar</h3>
+                    <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
+                        <div className="flex-1 flex flex-col min-h-0">
+                            <div className="flex-1 flex flex-col justify-between min-h-0 gap-1 overflow-y-auto pr-2 custom-scrollbar">
+                                {mockCompletionData.map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-3 text-[11px]">
+                                        <div className="w-40 text-right truncate text-slate-600 font-medium">{item.name}</div>
+                                        <div className="flex-1 bg-slate-100 h-3.5 rounded-full overflow-hidden flex items-center">
+                                            <div className="bg-[#0b195c] h-full" style={{ width: `${item.value}%` }}></div>
+                                        </div>
+                                        <div className="w-8 font-bold text-slate-800 text-right">{item.value}%</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="w-full lg:w-80 flex flex-col min-h-0">
+                            <div className="border border-slate-200 rounded overflow-hidden flex-1 flex flex-col text-[11px]">
+                                <div className="flex font-bold bg-[#0b195c] text-white p-2">
+                                    <div className="flex-1">Equipe</div>
+                                    <div className="w-14 text-right">Lanç.</div>
+                                    <div className="w-14 text-right">Pend.</div>
+                                </div>
+                                <div className="flex-1 flex flex-col justify-around">
+                                    {[
+                                        { label: 'Engenharia Digital', l: 7887, p: 1791 },
+                                        { label: 'Sistemas Autônomos', l: 1392, p: 183 },
+                                        { label: 'Veículos Conectados', l: 3335, p: 644 },
+                                        { label: 'Sistemas Industriais', l: 7923, p: 994 },
+                                        { label: 'Arquitetura VEV', l: 1058, p: 58 },
+                                    ].map((row, i) => (
+                                        <div key={i} className="p-2 flex border-b border-slate-100 items-center">
+                                            <div className="flex-1 font-medium">{row.label}</div>
+                                            <div className="w-14 text-right">{row.l}</div>
+                                            <div className="w-14 text-right text-rose-600 font-bold">{row.p}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="bg-slate-100 font-bold p-2 border-t border-slate-300 uppercase text-[10px] text-slate-500 flex">
+                                    <div className="flex-1">Total Geral</div>
+                                    <div className="w-14 text-right">15810</div>
+                                    <div className="w-14 text-right text-rose-600">2785</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const ActualsVsWorkloadPage = () => {
+            const maxMonthly = Math.max(...mockMonthlyData.map(d => Math.max(d.actual, d.workload))) * 1.1;
+            const maxVar = Math.max(...mockVarianceData.map(d => Math.abs(d.value)));
+
+            return (
+                <div className="p-5 bg-slate-50 h-full flex flex-col overflow-hidden">
+                    <div className="flex justify-between items-start mb-4 shrink-0">
+                        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            Resumo Consolidado 2026 <Icon name="info" size={16} className="text-slate-400" />
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-3 mb-6 shrink-0">
+                        <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Realizado (Força)</div>
+                            <div className="text-2xl font-bold text-slate-800">{kpiData.realizadoForca.toLocaleString()}</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Esforço Extra (Hrs)</div>
+                            <div className="text-2xl font-bold text-slate-800">{kpiData.esforcoExtra.toLocaleString()}</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 border-t-4 border-t-blue-600">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Realizado Equivalente</div>
+                            <div className="text-2xl font-bold text-slate-800">{kpiData.realizadoEquivalente.toLocaleString()}</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 border-t-4 border-t-emerald-600">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Realizado vs Planejado</div>
+                            <div className="flex items-baseline gap-2">
+                                <div className="text-2xl font-bold text-emerald-600">+{kpiData.variacao}</div>
+                                <div className="text-sm font-bold text-emerald-600">({kpiData.porcentagem}%)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-5 flex-1 min-h-0">
+                        <div className="col-span-2 bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-col">
+                            <h4 className="text-xs font-bold text-slate-700 mb-6 uppercase tracking-wider">Tendência de Alocação 2026</h4>
+                            <div className="flex-1 flex items-end justify-between px-4 pb-6 relative border-b border-slate-100">
+                                {mockMonthlyData.map((d, i) => (
+                                    <div key={i} className="flex gap-1.5 items-end h-full w-12 group">
+                                        <div className="w-full bg-[#0b195c] rounded-t" style={{ height: `${(d.actual / maxMonthly) * 100}%` }}></div>
+                                        <div className="w-full bg-blue-300 rounded-t" style={{ height: `${(d.workload / maxMonthly) * 100}%` }}></div>
+                                        <div className="absolute -bottom-6 w-12 text-center text-[10px] font-bold text-slate-400 uppercase">{d.month}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex justify-center gap-8 mt-10 text-[10px] font-bold text-slate-500 uppercase">
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-[#0b195c]"></div> Realizado</div>
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-blue-300"></div> Planejado</div>
+                            </div>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-col">
+                            <h4 className="text-xs font-bold text-slate-700 mb-4 uppercase tracking-wider">Top Variações por Projeto</h4>
+                            <div className="flex-1 flex flex-col justify-between py-2">
+                                {mockVarianceData.map((item, idx) => (
+                                    <div key={idx} className="flex items-center text-[11px]">
+                                        <div className="w-32 text-right pr-3 truncate text-slate-500 font-medium">{item.name}</div>
+                                        <div className="flex-1 flex items-center h-4 relative">
+                                            <div className={`h-full rounded-full ${item.value < 0 ? 'bg-rose-500' : 'bg-[#0b195c]'}`} style={{ width: `${(Math.abs(item.value) / maxVar) * 85}%` }}></div>
+                                            <span className={`ml-2 font-bold ${item.value < 0 ? 'text-rose-600' : 'text-slate-700'}`}>{item.value > 0 ? '+' : ''}{item.value}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        function App() {
+            const [currentPage, setCurrentPage] = useState('home');
+
+            const Sidebar = () => (
+                <div className="w-60 bg-[#0b195c] text-white flex flex-col h-full shrink-0">
+                    <div className="p-5 flex items-center gap-3 border-b border-white/10">
+                        <BrandLogo size="sm" theme="dark" />
+                        <div className="font-bold text-sm tracking-tight leading-tight">
+                            RS Dashboard<br/><span className="text-blue-400 font-medium text-[10px] uppercase">Controle 2026</span>
+                        </div>
+                    </div>
+                    <div className="p-3 space-y-1">
+                        <button onClick={() => setCurrentPage('home')} className={`flex items-center gap-3 text-xs px-4 py-2.5 w-full text-left rounded-lg transition-all ${currentPage === 'home' ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:bg-white/5'}`}>
+                            <Icon name="home" size={16} /> Home Principal
+                        </button>
+                        <button onClick={() => setCurrentPage('entry')} className={`flex items-center gap-3 text-xs px-4 py-2.5 w-full text-left rounded-lg transition-all ${currentPage === 'entry' ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:bg-white/5'}`}>
+                            <Icon name="file-text" size={16} /> Status Lançamento
+                        </button>
+                        <button onClick={() => setCurrentPage('actuals')} className={`flex items-center gap-3 text-xs px-4 py-2.5 w-full text-left rounded-lg transition-all ${currentPage === 'actuals' ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:bg-white/5'}`}>
+                            <Icon name="activity" size={16} /> Realizado vs Carga
+                        </button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="w-screen h-screen flex bg-slate-100 font-sans text-slate-900 overflow-hidden">
+                    {currentPage === 'home' ? (
+                        <HomePage setPage={setCurrentPage} />
+                    ) : (
+                        <>
+                            <Sidebar />
+                            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                                <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Gestão de Recursos RS - Ciclo 2026</div>
+                                    <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">
+                                        <Icon name="user" size={14} className="text-[#0b195c]" /> RS | Rodrigo Santos
+                                    </div>
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                    {currentPage === 'entry' && <EntryStatusPage />}
+                                    {currentPage === 'actuals' && <ActualsVsWorkloadPage />}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
